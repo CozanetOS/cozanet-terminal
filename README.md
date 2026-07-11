@@ -1,11 +1,112 @@
-# cozanet-terminal
+# CozanetOS Terminal Engine (`cozanet-terminal`)
 
-A complete terminal execution and shell environment manager package in TypeScript.
+> **AI-Native OS Terminal, Command Execution, and Secure Process Virtualization Engine**
 
-## Features
-- Safe command engine utilizing `execa`
-- Process spawning & lifecycle management
-- Code compilation & project builder utilities
-- NPM Package dependency operations
-- Efficient tailing, scanning & log visualization
-- Environment variable sanitization with `zod`
+`cozanet-terminal` is the execution backbone of CozanetOS. It handles low-level process spawning, sandboxed shells, log streams, environment isolation, and resource scheduling, giving AI agents a secure, reliable command-line workspace to operate within.
+
+---
+
+## 🚀 Key Capabilities
+
+- **Shell Command Execution**: Executes commands across multiple shell flavors (`bash`, `zsh`, `sh`) with precise exit code and stderr tracking.
+- **Build Operations**: Built-in support for executing common compile and build tooling pipelines (`npm run build`, `cargo build`, `make`, `maven`, etc.).
+- **Test Suite Execution**: Seamless integration with test runners (`jest`, `pytest`, `cargo test`) yielding structured execution JSON.
+- **Package Management**: Secure execution of system and runtime package managers (`npm install`, `pip install`, `apt-get`, `cargo add`).
+- **Environment Management**: Dynamically configures and scopes environments via virtualenvs, `.env` file parsers, and node/python version managers (`nvm`, `pyenv`).
+- **Process Management**: Robust process daemon capable of initiating, tracking, signaling (SIGKILL, SIGTERM), and resource-monitoring asynchronous background tasks.
+- **Log Streaming & Parsing**: Real-time log monitoring (`tail -f`), high-speed string and regex filtering (`grep`), and parsing unstructured logs into semantic events.
+- **Command History**: Detailed, structured, and searchable execution history database, allowing agents to audit previous commands.
+- **Interactive REPL Support**: Full input-output streaming support for interactive command-line environments (Python REPL, Node, interactive SSH).
+- **File System Operations**: High-performance, built-in execution pathways for recursive disk operations (`cp`, `mv`, `rm`, `find`, `chmod`).
+- **SSH & Remote Session Support**: Built-in SSH client to establish and run secure commands on remote nodes.
+- **Persistent Sessions (tmux)**: Full tmux orchestration to maintain active terminal states and sessions across agent disconnects.
+- **Streaming Output Capture**: Real-time stdout/stderr redirection via WebSockets or SSE directly to agents.
+- **Secure Sandboxing**: Complete isolation of executed commands inside hardened Docker or gVisor execution profiles.
+- **Resource Limits & Constraints**: Enforces kernel-level limits (CPU quotas, memory caps, network access rules) per command execution.
+
+---
+
+## 🛠️ Architecture & Component Breakdown
+
+```
+        ┌────────────────────────────────────────────────────────┐
+        │             CozanetOS Core & Agent Workspaces          │
+        └───────────────────────────┬────────────────────────────┘
+                                    ▼
+        ┌────────────────────────────────────────────────────────┐
+        │                  cozanet-terminal                      │
+        │                                                        │
+        │  ┌───────────────────────┐    ┌──────────────────────┐ │
+        │  │     pty Host & SSE    │    │ Sandbox Manager      │ │
+        │  │  (Streaming Console)  │    │  (cgroups / Docker)  │ │
+        │  └───────────────────────┘    └──────────────────────┘ │
+        └───────────────────────────┬────────────────────────────┘
+                                    ▼
+        ┌────────────────────────────────────────────────────────┐
+        │                 Isolated Linux Sandbox                 │
+        └────────────────────────────────────────────────────────┘
+```
+
+- **pty Host & SSE**: Spawns pseudoterminals (PTYs) to mimic human console sessions, providing real-time output streams via Server-Sent Events.
+- **Sandbox Manager**: Enforces strict containerization and cgroups constraints, protecting the host system from escape attempts.
+
+---
+
+## 🔌 API & Interface Overview
+
+`cozanet-terminal` provides gRPC and HTTP streaming protocols for high-fidelity interactive terminal pipelines.
+
+### Run a Command inside the Sandbox
+
+```bash
+curl -X POST http://localhost:8095/v1/terminal/execute   -H "Content-Type: application/json"   -d '{
+    "command": "npm run build",
+    "timeout_seconds": 60,
+    "env": {"NODE_ENV": "production"}
+  }'
+```
+
+**Response:**
+```json
+{
+  "command_id": "cmd_90f13",
+  "exit_code": 0,
+  "stdout": "Building project...
+Compiled successfully!
+",
+  "stderr": "",
+  "execution_time_ms": 1420
+}
+```
+
+---
+
+## 🔗 Integration with Other CozanetOS Modules
+
+- `cozanet-development`: Runs the physical tests, linters, and compiler processes generated by the development engine.
+- `cozanet-agents`: Offers a direct interactive console where agents can run tools, diagnostics, and utility scripts.
+- `cozanet-filesystem`: Maps secure workspace volumes directly into the active PTY shell paths.
+- `cozanet-security`: Constantly monitors execution command hooks to intercept and block unauthorized or destructive shell payloads (e.g., system wipeout commands).
+
+---
+
+## ⚡ Quick-Start Notes
+
+### Prerequisites
+- Linux or macOS system
+- Docker or system-level isolation layers configured
+- Node.js >= 20.x
+
+### Installation
+```bash
+git clone https://github.com/CozanetOS/cozanet-terminal.git
+cd cozanet-terminal
+npm install
+npm run build
+```
+
+### Run Terminal Daemon
+```bash
+npm run start:daemon
+# Terminal Daemon listening on port 8095
+```
